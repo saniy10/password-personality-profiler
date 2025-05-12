@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Password Personality Profiler</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+    h1 { color: #333; }
+    textarea { width: 100%; height: 100px; padding: 10px; }
+    button { margin-top: 10px; padding: 10px 15px; }
+    .result { margin-top: 20px; background: #fff; padding: 15px; border-radius: 5px; }
+    .score { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Password Personality Profiler</h1>
+  <p>Enter 3–5 demo passwords (one per line):</p>
+  <textarea id="passwords"></textarea>
+  <br />
+  <button onclick="analyzePasswords()">Analyze</button>
+
+  <div class="result" id="result" style="display:none;"></div>
+
+  <script>
+    function analyzePasswords() {
+      const input = document.getElementById("passwords").value.trim();
+      const lines = input.split("\n").filter(p => p.length > 0);
+      const result = document.getElementById("result");
+      if (lines.length < 2) {
+        result.innerHTML = "<p>Please enter at least 2 passwords.</p>";
+        result.style.display = "block";
+        return;
+      }
+
+      let traits = [];
+      let totalScore = 0;
+
+      lines.forEach(pwd => {
+        let score = 0;
+        let summary = [];
+
+        if (/\d{4}/.test(pwd)) {
+          summary.push("Birth year detected");
+          score -= 1;
+        }
+        if (/\b(john|love|dog|cat|admin)\b/i.test(pwd)) {
+          summary.push("Common name or word");
+          score -= 1;
+        }
+        if (/password|123456|qwerty/i.test(pwd)) {
+          summary.push("Overused password");
+          score -= 2;
+        }
+        if (pwd.length < 8) {
+          summary.push("Too short");
+          score -= 1;
+        }
+        if (/[^a-zA-Z0-9]/.test(pwd)) {
+          summary.push("Has symbols (good)");
+          score += 2;
+        }
+        if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) {
+          summary.push("Mixed case (good)");
+          score += 1;
+        }
+        if (/\d/.test(pwd)) {
+          summary.push("Has numbers");
+          score += 1;
+        }
+
+        totalScore += score;
+        traits.push(`<li><strong>${pwd}</strong>: ${summary.join(", ")} (<span class='score'>Score: ${score}</span>)</li>`);
+      });
+
+      // Overall personality profile
+      let profile = "";
+      if (totalScore >= lines.length * 2) {
+        profile = "🧠 The Overthinker – very complex and strong passwords.";
+      } else if (totalScore <= lines.length * -1) {
+        profile = "😅 The Careless User – weak and guessable passwords.";
+      } else if (totalScore >= 0) {
+        profile = "🎨 The Creative – decent security with good patterns.";
+      } else {
+        profile = "❤️ The Emotional – includes personal or emotional hints.";
+      }
+
+      result.innerHTML = `<h3>Analysis:</h3><ul>${traits.join("")}</ul><p><strong>Personality:</strong> ${profile}</p>`;
+      result.style.display = "block";
+    }
+  </script>
+</body>
+</html>
